@@ -245,7 +245,7 @@ fn main() {
     build.cpp(true).file("wrapper/lld-c.cpp");
 
     if build.get_compiler().is_like_msvc() {
-        build.flag("/std:c++17");
+        build.flag("/std:c++17").flag("/MT");
     } else {
         build.flag("-std=c++17");
     }
