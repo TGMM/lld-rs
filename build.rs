@@ -19,7 +19,10 @@ lazy_static::lazy_static! {
 
     /// Filesystem path to an llvm-config binary for the correct version.
     static ref LLVM_CONFIG_PATH: PathBuf = {
-        if let Some(path) = env::var_os(format!("DEP_LLVM_{}_CONFIG_PATH", CRATE_VERSION.major)) {
+        let config_path = format!("DEP_LLVM_{}_CONFIG_PATH", CRATE_VERSION.major);
+        println!("Config path var: {}", config_path);
+        if let Some(path) = env::var_os(config_path) {
+            println!("Config path: {}", path.to_str().unwrap());
             return path.into()
         }
 
@@ -132,7 +135,7 @@ fn get_system_libraries() -> Vec<String> {
                     )
                 }
             }
-                .to_owned()
+            .to_owned()
         })
         .chain(get_system_libcpp().map(str::to_owned))
         .collect::<Vec<String>>()
@@ -214,7 +217,7 @@ fn get_llvm_cxxflags() -> String {
         "LLVM_SYS_{}_NO_CLEAN_CFLAGS",
         env!("CARGO_PKG_VERSION_MAJOR")
     ))
-        .is_some();
+    .is_some();
     if no_clean || target_env_is("msvc") {
         // MSVC doesn't accept -W... options, so don't try to strip them and
         // possibly strip something that should be retained. Also do nothing if
@@ -239,9 +242,7 @@ fn main() {
     std::env::set_var("CXXFLAGS", get_llvm_cxxflags());
     let mut build = cc::Build::new();
 
-    build
-        .cpp(true)
-        .file("wrapper/lld-c.cpp");
+    build.cpp(true).file("wrapper/lld-c.cpp");
 
     if build.get_compiler().is_like_msvc() {
         build.flag("/std:c++17");
@@ -282,7 +283,7 @@ fn main() {
         "LLVM_SYS_{}_USE_DEBUG_MSVCRT",
         env!("CARGO_PKG_VERSION_MAJOR")
     ))
-        .is_some();
+    .is_some();
     if cfg!(target_env = "msvc") && (use_debug_msvcrt || is_llvm_debug()) {
         println!("cargo:rustc-link-lib=msvcrtd");
     }
